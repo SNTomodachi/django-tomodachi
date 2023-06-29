@@ -1,1 +1,1 @@
-# Django-Tomodachi
+# django-tomodachi
