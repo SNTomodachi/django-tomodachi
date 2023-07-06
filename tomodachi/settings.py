@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-uda@-*g633u)ru-f8bk$kk5yc)y)84@u2%(-hv24z^3*r@58c^"
+SECRET_KEY = os.getenv("SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -62,7 +62,13 @@ THIRD_PARTY_APPS = [
     "rest_framework",
 ]
 
-MY_APPS = ["users", "posts"]
+MY_APPS = [
+    "users",
+    "friendships",
+    "followers",
+    "comments",
+    "reactions",
+]
 
 DRF_SPECTACULAR = ["drf_spectacular"]
 
@@ -106,14 +112,13 @@ WSGI_APPLICATION = "tomodachi.wsgi.application"
 
 DATABASES = {
     "default": {
-        # O django já contém a instrução para rodar o motor psycopg2 do postgres
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
+        "USERNAME": os.getenv("POSTGRES_USERNAME"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": "127.0.0.1",
-        "PORT": 5432,
-    }
+        "NAME": os.getenv("POSTGRES_DB_NAME"),
+        "HOST": os.getenv("POSTGRES_DB_HOST"),
+        "PORT": os.getenv("POSTGRES_DB_PORT"),
+    },
 }
 
 if os.getenv("DATABASE_URL"):
