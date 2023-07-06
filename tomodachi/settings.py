@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-   
 ]
 
 
@@ -63,13 +62,9 @@ THIRD_PARTY_APPS = [
     "rest_framework",
 ]
 
-MY_APPS = [
-    "users",
-    ]
+MY_APPS = ["users", "posts"]
 
-DRF_SPECTACULAR = [
-    'drf_spectacular'
-]
+DRF_SPECTACULAR = ["drf_spectacular"]
 
 ROOT_URLCONF = "tomodachi.urls"
 
@@ -110,23 +105,23 @@ WSGI_APPLICATION = "tomodachi.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-  "default": {
-      # O django já contém a instrução para rodar o motor psycopg2 do postgres
-      "ENGINE": "django.db.backends.postgresql",
-      "NAME": os.getenv("POSTGRES_DB"),
-      "USER": os.getenv("POSTGRES_USER"),
-      "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-      "HOST": "127.0.0.1",
-      "PORT": 5432,
-  }
+    "default": {
+        # O django já contém a instrução para rodar o motor psycopg2 do postgres
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": "127.0.0.1",
+        "PORT": 5432,
+    }
 }
 
 if os.getenv("DATABASE_URL"):
-    DATABASES['default'] = dj_database_url.config()
+    DATABASES["default"] = dj_database_url.config()
     DEBUG = False
 
-STATICFILES_DIRS = os.path.join(BASE_DIR),
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+STATICFILES_DIRS = (os.path.join(BASE_DIR),)
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles_build", "static")
 
 
 # Password validation
@@ -155,14 +150,14 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 2,
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',  
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Your Project API',
-    'DESCRIPTION': 'Your project description',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    "TITLE": "Your Project API",
+    "DESCRIPTION": "Your project description",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
 }
 
