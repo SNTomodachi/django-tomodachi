@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-uda@-*g633u)ru-f8bk$kk5yc)y)84@u2%(-hv24z^3*r@58c^"
+SECRET_KEY = os.getenv("SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-   
 ]
 
 
@@ -65,11 +64,13 @@ THIRD_PARTY_APPS = [
 
 MY_APPS = [
     "users",
-    ]
-
-DRF_SPECTACULAR = [
-    'drf_spectacular'
+    "friendships",
+    "followers",
+    "comments",
+    "reactions",
 ]
+
+DRF_SPECTACULAR = ["drf_spectacular"]
 
 ROOT_URLCONF = "tomodachi.urls"
 
@@ -110,23 +111,22 @@ WSGI_APPLICATION = "tomodachi.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-  "default": {
-      # O django já contém a instrução para rodar o motor psycopg2 do postgres
-      "ENGINE": "django.db.backends.postgresql",
-      "NAME": os.getenv("POSTGRES_DB"),
-      "USER": os.getenv("POSTGRES_USER"),
-      "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-      "HOST": "127.0.0.1",
-      "PORT": 5432,
-  }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "USERNAME": os.getenv("POSTGRES_USERNAME"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "NAME": os.getenv("POSTGRES_DB_NAME"),
+        "HOST": os.getenv("POSTGRES_DB_HOST"),
+        "PORT": os.getenv("POSTGRES_DB_PORT"),
+    },
 }
 
 if os.getenv("DATABASE_URL"):
-    DATABASES['default'] = dj_database_url.config()
+    DATABASES["default"] = dj_database_url.config()
     DEBUG = False
 
-STATICFILES_DIRS = os.path.join(BASE_DIR),
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+STATICFILES_DIRS = (os.path.join(BASE_DIR),)
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles_build", "static")
 
 
 # Password validation
@@ -155,14 +155,14 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 2,
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',  
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Your Project API',
-    'DESCRIPTION': 'Your project description',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    "TITLE": "Your Project API",
+    "DESCRIPTION": "Your project description",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
 }
 
