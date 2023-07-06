@@ -21,7 +21,12 @@ class FriendshipView(ListCreateAPIView, DestroyAPIView):
     def perform_create(self, serializer):
         receiver = get_object_or_404(User, pk=self.kwargs["pk"])
         sender = self.request.user
-        serializer.save(sender=sender, receiver=receiver)
+        serializer.save(sender=sender, receiver=receiver, friend=False)
+
+    def delete(self):
+        sender = self.request.user
+        Relationship = get_object_or_404(User, sender=sender)
+        Relationship.delete()
 
 
 class FriendshipUpdateView(RetrieveUpdateDestroyAPIView):
