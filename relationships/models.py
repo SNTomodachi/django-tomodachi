@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Relationship(models.Model):
+class Relationships(models.Model):
     sender = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="sender"
     )

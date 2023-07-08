@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
-from .models import Friend
+from .models import Relationships
 from users.models import User
 
 
-class FriendSerializer(serializers.ModelSerializer):
+class RelationshipsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Friend
+        model = Relationships
         fields = ["id", "status", "sender","receiver", "created_at", "updated_at"]
         read_only_fields = ["id", "status", "sender","receiver", "created_at", "updated_at"]
 

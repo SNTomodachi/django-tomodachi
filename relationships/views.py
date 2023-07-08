@@ -6,17 +6,17 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import Friend
-from .serializers import FriendSerializer
+from .models import Relationships
+from .serializers import RelationshipsSerializer
 from .permissions import IsAccountOwner
 from users.models import User
 
 
-class FriendshipView(ListCreateAPIView, DestroyAPIView):
+class RelationshipsView(ListCreateAPIView, DestroyAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAccountOwner]
-    serializer_class = FriendSerializer
-    queryset = Friend.objects.all()
+    serializer_class = RelationshipsSerializer
+    queryset = Relationships.objects.all()
 
     def perform_create(self, serializer):
         receiver = get_object_or_404(User, pk=self.kwargs["pk"])
@@ -29,9 +29,9 @@ class FriendshipView(ListCreateAPIView, DestroyAPIView):
         Relationship.delete()
 
 
-class FriendshipUpdateView(RetrieveUpdateDestroyAPIView):
+class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAccountOwner]
-    serializer_class = FriendSerializer
-    queryset = Friend.objects.all()
+    serializer_class = RelationshipsSerializer
+    queryset = Relationships.objects.all()
     lookup_url_kwarg = "pk"

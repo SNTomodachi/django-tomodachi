@@ -64,10 +64,11 @@ THIRD_PARTY_APPS = [
 
 MY_APPS = [
     "users",
-    "friendships",
+    "relationships",
     "followers",
     "comments",
     "reactions",
+    "posts",
 ]
 
 DRF_SPECTACULAR = ["drf_spectacular"]
