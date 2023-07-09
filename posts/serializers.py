@@ -7,10 +7,12 @@ class PostSerializer(ModelSerializer):
         model = Post
         fields = [
             "id",
+            "text",
+            "media",
             "share_privacy",
             "comments_privacy",
-            "text",
             "created_at",
-            "media",
+            "updated_at",
+            "user_id",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "created_at", "updated_at", "user_id"]

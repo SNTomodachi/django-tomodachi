@@ -20,10 +20,11 @@ class Post(Model):
     class Meta:
         ordering = ["id"]
 
+    text = TextField()
+    media = URLField(null=True)
     share_privacy = CharField(choices=SharePrivacy.choices, default="only_friends")
     comments_privacy = CharField(choices=SharePrivacy.choices, default="only_friends")
-    text = TextField()
     created_at = DateTimeField(auto_now_add=True)
-    media = URLField(null=True)
+    updated_at = DateTimeField(auto_now=True)
 
-    # user = ForeignKey("users.User", on_delete=CASCADE, related_name="user_posts")
+    user = ForeignKey("users.User", on_delete=CASCADE, related_name="user_posts")
