@@ -1,17 +1,12 @@
-from django.db import models
+from django.db.models import Model, ForeignKey, CASCADE, BooleanField, DateTimeField
 
 
-class Relationship(models.Model):
-    sender = models.ForeignKey(
-        "users.User", on_delete=models.CASCADE, related_name="sender"
-    )
-    receiver = models.ForeignKey(
-        "users.User", on_delete=models.CASCADE, related_name="receiver"
-    )
-    friend = models.BooleanField(default=False)
-    following = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
+class Friendship(Model):
     class Meta:
-        ordering = ("id",)
+        ordering = ["id"]
+
+    sender = ForeignKey("users.User", on_delete=CASCADE, related_name="sender")
+    receiver = ForeignKey("users.User", on_delete=CASCADE, related_name="receiver")
+    accepted = BooleanField(default=False)
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
