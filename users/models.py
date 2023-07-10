@@ -1,6 +1,6 @@
 from django.db.models import CharField, EmailField, BooleanField
 from django.contrib.auth.models import AbstractUser
-from friendships.models import Friendship
+from relationships.models import Relationships
 from django.db.models import Q
 from django.db.models.query import QuerySet
 
@@ -14,11 +14,11 @@ class User(AbstractUser):
     last_name = CharField(max_length=50)
 
     def get_friends(self) -> QuerySet["User"]:
-        sender_friends = Friendship.objects.filter(sender=self, accepted=True).values(
+        sender_friends = Relationships.objects.filter(sender=self, friends=True).values(
             "receiver"
         )
-        receiver_friends = Friendship.objects.filter(
-            receiver=self, accepted=True
+        receiver_friends = Relationships.objects.filter(
+            receiver=self, friends=True
         ).values("sender")
 
         friend_user_ids = sender_friends.union(receiver_friends)
