@@ -1,6 +1,12 @@
 from django.db import models
 
 
+class RelationshipStatus(models.TextChoices):
+    A = "accepted"
+    P = "pending"
+    N = "never"
+
+
 class Relationships(models.Model):
     sender = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="sender"
@@ -8,8 +14,10 @@ class Relationships(models.Model):
     receiver = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="receiver"
     )
-    friend = models.BooleanField(default=False)
     following = models.BooleanField(default=True)
+    friend = models.CharField(
+        choices=RelationshipStatus.choices, default=RelationshipStatus.N
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

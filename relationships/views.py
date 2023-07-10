@@ -10,31 +10,35 @@ from .permissions import IsAccountOwner
 from users.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework.serializers import ValidationError
-from django.db.models import Q
 
 
 class RelationshipsView(ListCreateAPIView, DestroyAPIView):
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAccountOwner]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAccountOwner]
     serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
 
     def perform_create(self, serializer):
-        receiver_id = self.kwargs["user_id"]
+        receiver = get_object_or_404(User, pk=self.kwargs["pk"])
         sender = self.request.user
-        receiver = get_object_or_404(User, pk=receiver_id)
 
-        if sender != receiver:
-            serializer.save(sender=sender, receiver=receiver, accepted=False)
+        relationship = Relationships.objects.filter(
+            sender=sender, receiver=receiver
+        ).exists()
+
+        if relationship["friend"] :
+            raise ValidationError("This relationship already exists.")
         else:
-            raise ValidationError("Sender and receiver cannot be the same user.")
+            if sender != receiver:
+                serializer.save(sender=sender, receiver=receiver, friend="pending" )
+            else:
+                raise ValidationError("Sender and receiver cannot be the same user.")
 
     def get_queryset(self):
         user = self.request.user
-
-        if user.pk != self.kwargs["user_id"]:
+        if user.pk != self.kwargs["pk"]:
             raise ValidationError("You can't see frienship requests from another user.")
-        return Relationships.objects.filter(receiver=user)
+        return Relationships.objects.filter(sender=user)
 
 
 class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
@@ -43,3 +47,32 @@ class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
     serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
     lookup_url_kwarg = "pk"
+
+
+    def retrieve(self, request, *args, **kwargs):
+        ...
+
+        
+class FollowersView(ListCreateAPIView, DestroyAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAccountOwner]
+    serializer_class = RelationshipSerializer
+    queryset = Relationships.objects.all()
+    lookup_url_kwarg = "pk"
+
+    def perform_create(self, serializer):
+        receiver = get_object_or_404(User, pk=self.kwargs["pk"])
+        sender = self.request.user
+
+        relationship = Relationships.objects.filter(
+            sender=sender, receiver=receiver
+        ).exists()
+
+        if relationship:
+            raise ValidationError("This following already exists.")
+        else:
+            if sender != receiver:
+                serializer.save(sender=sender, receiver=receiver, friend="never")
+            else:
+                raise ValidationError("Sender and receiver cannot be the same user.")
+
