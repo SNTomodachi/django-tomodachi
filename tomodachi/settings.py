@@ -69,7 +69,6 @@ MY_APPS = [
     "posts",
     "comments",
     "reactions",
-    "posts",
 ]
 
 DRF_SPECTACULAR = ["drf_spectacular"]

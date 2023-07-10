@@ -5,21 +5,18 @@ from rest_framework.generics import (
 )
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Relationships
-from .serializers import RelationshipsSerializer
+from .serializers import RelationshipSerializer
 from .permissions import IsAccountOwner
 from users.models import User
-from users.serializers import UserSerializer
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.serializers import ValidationError
 from django.db.models import Q
 
 
 class RelationshipsView(ListCreateAPIView, DestroyAPIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAccountOwner]
-    serializer_class = RelationshipsSerializer
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAccountOwner]
+    serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
 
     def perform_create(self, serializer):
@@ -43,6 +40,6 @@ class RelationshipsView(ListCreateAPIView, DestroyAPIView):
 class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAccountOwner]
-    serializer_class = RelationshipsSerializer
+    serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
     lookup_url_kwarg = "pk"
