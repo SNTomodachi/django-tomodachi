@@ -66,6 +66,7 @@ MY_APPS = [
     "users",
     "relationships",
     "followers",
+    "posts",
     "comments",
     "reactions",
     "posts",
