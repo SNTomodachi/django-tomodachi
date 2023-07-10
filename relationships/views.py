@@ -1,8 +1,7 @@
 from rest_framework.generics import (
-    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
     DestroyAPIView,
     ListCreateAPIView,
-    ListAPIView,
 )
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Relationships
@@ -38,7 +37,7 @@ class RelationshipsView(ListCreateAPIView, DestroyAPIView):
 
         if user.pk != self.kwargs["user_id"]:
             raise ValidationError("You can't see frienship requests from another user.")
-        return Friendship.objects.filter(receiver=user)
+        return Relationships.objects.filter(receiver=user)
 
 
 class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
