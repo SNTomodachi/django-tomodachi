@@ -14,10 +14,10 @@ class Relationships(models.Model):
     )
     following = models.BooleanField(default=True)
     friend = models.CharField(
-        choices=RelationshipStatus.choices, default=RelationshipStatus.N, max_length=10
+        choices=RelationshipStatus.choices, default=RelationshipStatus.N, max_length=8
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ("id",)
+        ordering = ["id"]
