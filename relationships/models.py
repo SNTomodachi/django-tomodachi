@@ -14,7 +14,7 @@ class Relationships(models.Model):
     )
     following = models.BooleanField(default=True)
     friend = models.CharField(
-        choices=RelationshipStatus.choices, default=RelationshipStatus.N, max_length=8
+        choices=RelationshipStatus.choices, default=RelationshipStatus.N, max_length=25
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
