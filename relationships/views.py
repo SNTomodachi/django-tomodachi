@@ -11,7 +11,7 @@ from rest_framework.generics import (
 from django.shortcuts import get_object_or_404
 from .models import Relationships, RelationshipStatus
 from .serializers import RelationshipSerializer
-from .permissions import IsAccountOwner, IsAccountRetriever
+from .permissions import IsAccountOwner, IsAccountRetriever, IsAccountFollowers
 from users.models import User
 
 
@@ -87,23 +87,33 @@ class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
 
 class FollowersView(ListCreateAPIView, DestroyAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAccountOwner]
+    permission_classes = [IsAuthenticated, IsAccountFollowers]
     serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
-    lookup_url_kwarg = "pk"
+
+    def get_object(self):
+        receiver = get_object_or_404(User, pk=self.kwargs["pk"])
+        sender = self.request.user
+        relationship = get_object_or_404(
+            Relationships, receiver=receiver, sender=sender, following=True
+        )
+        return relationship
 
     def perform_create(self, serializer):
         receiver = get_object_or_404(User, pk=self.kwargs["pk"])
         sender = self.request.user
 
-        relationship = Relationships.objects.filter(
-            sender=sender, receiver=receiver
-        )
+        relationship = Relationships.objects.filter(sender=sender, receiver=receiver)
         if relationship.exists() and relationship.first().following == True:
-                raise ValidationError("This relationship already exists.")
+            raise ValidationError("This relationship already exists.")
         else:
             if sender.id != receiver.id:
-                serializer.save(sender=sender, receiver=receiver, following=True, friend=RelationshipStatus.N)
+                serializer.save(
+                    sender=sender,
+                    receiver=receiver,
+                    following=True,
+                    friend=RelationshipStatus.N,
+                )
             else:
                 raise ValidationError("Sender and receiver cannot be the same user.")
 
@@ -121,11 +131,16 @@ class FollowersView(ListCreateAPIView, DestroyAPIView):
         return Response(serializer.data)
 
     def perform_destroy(self, instance):
-        sender = get_object_or_404(User, pk=self.kwargs["pk"])
-        receiver = self.request.user
+        receiver = get_object_or_404(User, pk=self.kwargs["pk"])
+        sender = self.request.user
         relationship = get_object_or_404(
-            Relationships, sender=sender, receiver=receiver
+            Relationships, receiver=receiver, sender=sender, following=True
         )
         relationship.following = False
-        relationship.save()
+
+        if relationship.friend == RelationshipStatus.N:
+            print(relationship.friend)
+            relationship.delete()
+        else:
+            relationship.save()
         return relationship
