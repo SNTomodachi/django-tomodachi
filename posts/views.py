@@ -12,7 +12,7 @@ from comments.serializers import CommentSerializer
 from comments.models import Comment
 
 
-class CreatePostView(CreateAPIView):
+class CreatePostView(ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     authentication_classes = [JWTAuthentication]
@@ -20,7 +20,6 @@ class CreatePostView(CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
 
 class PostDetailView(RetrieveAPIView):
     queryset = Post.objects.all()
