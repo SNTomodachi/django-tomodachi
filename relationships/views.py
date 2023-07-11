@@ -49,43 +49,29 @@ class RelationshipsView(ListCreateAPIView, DestroyAPIView):
 
 class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated,IsAccountRetriever]
+    permission_classes = [IsAuthenticated, IsAccountRetriever]
     serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
 
-    def perform_update(self, serializer):
-        receiver = get_object_or_404(User, pk=self.kwargs["pk"])
-
+    def get_object(self):
+        sender = get_object_or_404(User, pk=self.kwargs["pk"])
+        receiver = self.request.user
         relationship = get_object_or_404(
-            Relationships, sender=self.request.user, receiver=receiver
+            Relationships, sender=sender, receiver=receiver
+        )
+        return relationship
+
+    def perform_update(self, serializer):
+        sender = get_object_or_404(User, pk=self.kwargs["pk"])
+        receiver = self.request.user
+        relationship = get_object_or_404(
+            Relationships, sender=sender, receiver=receiver
         )
 
-        print(relationship)
-
         relationship.friend = RelationshipStatus.A
-
-        return relationship.save()
-
-    # def perform_update(self, request, *args, **kwargs):
-    #     receiver = get_object_or_404(User, pk=self.kwargs["pk"])
-        
-    #     relationship = Relationships.objects.filter(
-    #         sender=self.request.user, receiver=receiver
-    #     ).first()
-
-    #     print(relationship)
-
-    #     return relationship.save(friend=RelationshipStatus.N)
-
-    # def perform_update(self, instance):
-    #     receiver = get_object_or_404(User, pk=self.kwargs["pk"])
-    #     sender = self.request.user
-
-    #     relationship = Relationships.objects.filter(
-    #         sender=sender, receiver=receiver
-    #     ).first()
-
-    #     return relationship.save(following=False)
+        relationship.following = True
+        relationship.save()
+        return relationship
 
     def perform_destroy(self, instance):
         receiver = get_object_or_404(User, pk=self.kwargs["pk"])

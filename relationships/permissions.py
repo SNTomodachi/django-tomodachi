@@ -9,15 +9,8 @@ class IsAccountOwner(permissions.BasePermission):
     
 class IsAccountRetriever(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        receiver = get_object_or_404(User, pk=view.kwargs["pk"])
-        sender = request.user
 
-        relationship = Relationships.objects.filter(
-            sender=sender, receiver=receiver
-        ).first()
-
-        print(obj)
-        if relationship:
-            raise ValidationError("This friendship not already exists.")
+        if obj:
+            return request.user.is_authenticated and obj.receiver == request.user
         else:
-            return request.user.is_authenticated 
+            raise ValidationError("This friendship not already exists.")
