@@ -48,7 +48,17 @@ class RelationshipsView(ListCreateAPIView):
             raise ValidationError("You can't see frienship requests from another user.")
         return Relationships.objects.filter(sender=user)
 
+class FriendshipView(ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAccountOwner]
+    serializer_class = RelationshipSerializer
+    queryset = Relationships.objects.all()
 
+    def get_queryset(self):
+        user = self.request.user
+        print(user)
+        return Relationships.objects.filter(receiver=user, friend=RelationshipStatus.P)
+    
 class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAccountRetriever]
