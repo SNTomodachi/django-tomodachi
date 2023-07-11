@@ -22,8 +22,12 @@ class Post(Model):
 
     text = TextField()
     media = URLField(null=True)
-    share_privacy = CharField(choices=SharePrivacy.choices, default="only_friends")
-    comments_privacy = CharField(choices=SharePrivacy.choices, default="only_friends")
+    share_privacy = CharField(
+        choices=SharePrivacy.choices, default="only_friends", max_length=12
+    )
+    comments_privacy = CharField(
+        choices=SharePrivacy.choices, default="only_friends", max_length=12
+    )
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
 
