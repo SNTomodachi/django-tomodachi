@@ -1,4 +1,4 @@
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, ListCreateAPIView
+from rest_framework.generics import  RetrieveAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +10,8 @@ from .permissions import (
 )
 from comments.serializers import CommentSerializer
 from comments.models import Comment
+from reactions.serializers import ReactionSerializer
+from reactions.models import Reaction
 
 
 class CreatePostView(ListCreateAPIView):
@@ -20,6 +22,7 @@ class CreatePostView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
 
 class PostDetailView(RetrieveAPIView):
     queryset = Post.objects.all()
@@ -53,6 +56,23 @@ class CommentPostView(ListCreateAPIView):
 
     def get_queryset(self):
         post_id = self.kwargs["pk"]
+       
+        return Comment.objects.filter(post_id=post_id)
+
+
+class ReactionsPostView(ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = ReactionSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsUserIncludedInPostPrivacy]
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs["pk"]
         post = Post.objects.get(id=post_id)
 
-        return Comment.objects.filter(post_id=post_id)
+        serializer.save(post=post, user=self.request.user)
+
+    def get_queryset(self):
+        post_id = self.kwargs["pk"]
+
+        return Reaction.objects.filter(post_id=post_id)
