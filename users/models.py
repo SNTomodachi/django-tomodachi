@@ -14,14 +14,16 @@ class User(AbstractUser):
     last_name = CharField(max_length=50)
 
     def get_friends(self) -> QuerySet["User"]:
-        sender_friends = Relationships.objects.filter(
+        sender_friend_user_ids = Relationships.objects.filter(
             sender=self, friend="accepted"
-        ).values("receiver")
-        receiver_friends = Relationships.objects.filter(
-            receiver=self, friend="accepted"
-        ).values("sender")
+        ).values_list("receiver_id", flat=True)
 
-        friend_user_ids = sender_friends.union(receiver_friends)
-        friends = User.objects.filter(pk__in=friend_user_ids)
+        receiver_friend_user_ids = Relationships.objects.filter(
+            receiver=self, friend="accepted"
+        ).values_list("sender_id", flat=True)
+
+        friend_user_ids = set(sender_friend_user_ids) | set(receiver_friend_user_ids)
+
+        friends = User.objects.filter(id__in=friend_user_ids)
 
         return friends
