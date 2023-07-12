@@ -14,6 +14,7 @@ from comments.models import Comment
 from reactions.serializers import ReactionSerializer
 from reactions.models import Reaction
 from users.models import User
+from django.db.models import Q
 
 
 class CreatePostView(ListCreateAPIView):
@@ -23,9 +24,17 @@ class CreatePostView(ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def list(self, request, *args, **kwargs):
-        queryset = Post.objects.filter(
-            share_privacy="only_friends", user__in=User.get_friends(request.user.id)
-        ) | Post.objects.filter(share_privacy="public")
+        if request.user.id:
+            queryset = Post.objects.filter(
+                Q(
+                    user__in=User.get_friends(request.user.id),
+                    share_privacy="only_friends",
+                )
+                | Q(user_id=request.user)
+                | Q(share_privacy="public")
+            )
+        else:
+            queryset = Post.objects.filter(share_privacy="public")
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -60,7 +69,10 @@ class CommentPostView(ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = CommentSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticatedOrReadOnly, IsUserIncludedInCommentsPostPrivacy]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsUserIncludedInCommentsPostPrivacy,
+    ]
 
     def perform_create(self, serializer):
         post_id = self.kwargs["pk"]
