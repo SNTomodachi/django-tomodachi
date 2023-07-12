@@ -1,8 +1,6 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission,SAFE_METHODS
 from users.models import User
 from .models import Post
-
-
 class IsUserIncludedInPostPrivacy(BasePermission):
     def has_object_permission(self, request, view, obj: Post):
         try:

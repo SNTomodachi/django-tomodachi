@@ -9,7 +9,7 @@ from rest_framework.generics import (
     DestroyAPIView,
     ListCreateAPIView,
 )
-from django.shortcuts import get_object_or_404 , get_list_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from .models import Relationships, RelationshipStatus
 from .serializers import RelationshipSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -33,6 +33,7 @@ class RelationshipsView(ListAPIView):
             Q(sender=pk) | Q(receiver=pk), friend=RelationshipStatus.A
         )
 
+
 class FriendsRequestsView(ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAccountOwner]
@@ -42,6 +43,7 @@ class FriendsRequestsView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Relationships.objects.filter(receiver=user, friend=RelationshipStatus.P)
+
 
 class FriendshipRequestView(ListCreateAPIView):
     authentication_classes = [JWTAuthentication]
@@ -59,6 +61,10 @@ class FriendshipRequestView(ListCreateAPIView):
         if relationship:
             if relationship.friend in [RelationshipStatus.A, RelationshipStatus.P]:
                 raise ValidationError("This relationship already exists.")
+            else:
+                relationship.friend = RelationshipStatus.P
+                serializer.instance = relationship
+                serializer.save()
         else:
             if sender != receiver:
                 serializer.save(
@@ -83,7 +89,6 @@ class FriendshipRequestUpdateDestroyView(RetrieveUpdateDestroyAPIView):
         serializer.save()
         return serializer.data
 
-
     def perform_destroy(self, instance):
         if instance.friend == RelationshipStatus.N:
             raise ValidationError("You are not friends with this user.")
@@ -99,8 +104,8 @@ class FollowingView(ListCreateAPIView, DestroyAPIView):
     queryset = Relationships.objects.all()
 
     def list(self, request, *args, **kwargs):
-        relationship =  get_list_or_404(
-            Relationships,sender=self.kwargs["pk"], following=True
+        relationship = get_list_or_404(
+            Relationships, sender=self.kwargs["pk"], following=True
         )
         page = self.paginate_queryset(relationship)
         if page is not None:
@@ -130,7 +135,7 @@ class FollowingView(ListCreateAPIView, DestroyAPIView):
 
     def perform_destroy(self, instance):
         if instance.following == False:
-             raise ValidationError("You are not following with this user.")
+            raise ValidationError("You are not following with this user.")
         instance.following = False
 
         if instance.friend == RelationshipStatus.N:
@@ -139,6 +144,7 @@ class FollowingView(ListCreateAPIView, DestroyAPIView):
             instance.save()
         return instance
 
+
 class followsView(ListAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAccountFollowers]
@@ -146,8 +152,8 @@ class followsView(ListAPIView):
     queryset = Relationships.objects.all()
 
     def list(self, request, *args, **kwargs):
-        relationship =  get_list_or_404(
-            Relationships,receiver=self.kwargs["pk"], following=True
+        relationship = get_list_or_404(
+            Relationships, receiver=self.kwargs["pk"], following=True
         )
         page = self.paginate_queryset(relationship)
         if page is not None:
@@ -156,4 +162,3 @@ class followsView(ListAPIView):
 
         serializer = self.get_serializer(relationship, many=True)
         return Response(serializer.data)
-    

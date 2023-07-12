@@ -11,9 +11,13 @@ class IsAccountOwner(permissions.BasePermission):
 class IsFriendshipReceiver(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if obj:
-            return request.user.is_authenticated and obj.receiver == request.user
+            if request.method == "PATCH":
+                return request.user.is_authenticated and obj.receiver == request.user
+            elif request.method == "DELETE":
+                return request.user.is_authenticated and (obj.receiver == request.user or obj.sender == request.user)
         else:
             raise PermissionDenied("This friend request does not exist.", code=404)
+
 
 
 class IsAccountFollowers(permissions.BasePermission):
