@@ -4,20 +4,50 @@ from rest_framework.serializers import ValidationError
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.generics import (
+    ListAPIView,
     RetrieveUpdateDestroyAPIView,
     DestroyAPIView,
     ListCreateAPIView,
 )
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from .models import Relationships, RelationshipStatus
 from .serializers import RelationshipSerializer
-from .permissions import IsAccountOwner, IsAccountRetriever, IsAccountFollowers
+from rest_framework.permissions import IsAuthenticated
+from .permissions import (
+    IsAccountOwner,
+    IsFriendshipReceiver,
+    IsAccountFollowers,
+)
 from users.models import User
 
 
-class RelationshipsView(ListCreateAPIView):
+class RelationshipsView(ListAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAccountOwner]
+    permission_classes = [IsAuthenticated]
+    serializer_class = RelationshipSerializer
+    queryset = Relationships.objects.all()
+
+    def get_queryset(self):
+        pk = get_object_or_404(User, pk=self.kwargs["pk"])
+        return Relationships.objects.filter(
+            Q(sender=pk) | Q(receiver=pk), friend=RelationshipStatus.A
+        )
+
+
+class FriendsRequestsView(ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAccountOwner]
+    serializer_class = RelationshipSerializer
+    queryset = Relationships.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+        return Relationships.objects.filter(receiver=user, friend=RelationshipStatus.P)
+
+
+class FriendshipRequestView(ListCreateAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAccountOwner]
     serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
 
@@ -28,10 +58,13 @@ class RelationshipsView(ListCreateAPIView):
         relationship = Relationships.objects.filter(
             sender=sender, receiver=receiver
         ).first()
-
         if relationship:
             if relationship.friend in [RelationshipStatus.A, RelationshipStatus.P]:
                 raise ValidationError("This relationship already exists.")
+            else:
+                relationship.friend = RelationshipStatus.P
+                serializer.instance = relationship
+                serializer.save()
         else:
             if sender != receiver:
                 serializer.save(
@@ -40,74 +73,47 @@ class RelationshipsView(ListCreateAPIView):
             else:
                 raise ValidationError("Sender and receiver cannot be the same user.")
 
-    def get_queryset(self):
-        user = self.request.user
-        pk = self.kwargs.get("pk")
 
-        if pk is not None and user.pk != pk:
-            raise ValidationError("You can't see frienship requests from another user.")
-        return Relationships.objects.filter(sender=user)
-
-class FriendshipView(ListCreateAPIView):
+class FriendshipRequestUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAccountOwner]
+    permission_classes = [IsFriendshipReceiver]
     serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
-
-    def get_queryset(self):
-        user = self.request.user
-        print(user)
-        return Relationships.objects.filter(receiver=user, friend=RelationshipStatus.P)
-    
-class RelationshipsUpdateView(RetrieveUpdateDestroyAPIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated, IsAccountRetriever]
-    serializer_class = RelationshipSerializer
-    queryset = Relationships.objects.all()
-
-    def get_object(self):
-        sender = get_object_or_404(User, pk=self.kwargs["pk"])
-        receiver = self.request.user
-        relationship = get_object_or_404(
-            Relationships, sender=sender, receiver=receiver
-        )
-        return relationship
 
     def perform_update(self, serializer):
-        sender = get_object_or_404(User, pk=self.kwargs["pk"])
-        receiver = self.request.user
-        relationship = get_object_or_404(
-            Relationships, sender=sender, receiver=receiver
-        )
-        relationship.friend = RelationshipStatus.A
-        relationship.following = True
-        relationship.save()
-        return relationship
+        instance = serializer.instance
+        if instance.friend == RelationshipStatus.A:
+            raise ValidationError("This friend request has already been accepted.")
+        instance.friend = RelationshipStatus.A
+        instance.following = True
+        serializer.save()
+        return serializer.data
 
     def perform_destroy(self, instance):
-        sender = get_object_or_404(User, pk=self.kwargs["pk"])
-        receiver = self.request.user
-        relationship = get_object_or_404(
-            Relationships, sender=sender, receiver=receiver
-        )
-        relationship.friend = RelationshipStatus.N
-        relationship.save()
-        return relationship
+        if instance.friend == RelationshipStatus.N:
+            raise ValidationError("You are not friends with this user.")
+        instance.friend = RelationshipStatus.N
+        instance.save()
+        return instance
 
 
-class FollowersView(ListCreateAPIView, DestroyAPIView):
+class FollowingView(ListCreateAPIView, DestroyAPIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAccountFollowers]
     serializer_class = RelationshipSerializer
     queryset = Relationships.objects.all()
 
-    def get_object(self):
-        receiver = get_object_or_404(User, pk=self.kwargs["pk"])
-        sender = self.request.user
-        relationship = get_object_or_404(
-            Relationships, receiver=receiver, sender=sender, following=True
+    def list(self, request, *args, **kwargs):
+        relationship = get_list_or_404(
+            Relationships, sender=self.kwargs["pk"], following=True
         )
-        return relationship
+        page = self.paginate_queryset(relationship)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(relationship, many=True)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         receiver = get_object_or_404(User, pk=self.kwargs["pk"])
@@ -127,30 +133,32 @@ class FollowersView(ListCreateAPIView, DestroyAPIView):
             else:
                 raise ValidationError("Sender and receiver cannot be the same user.")
 
+    def perform_destroy(self, instance):
+        if instance.following == False:
+            raise ValidationError("You are not following with this user.")
+        instance.following = False
+
+        if instance.friend == RelationshipStatus.N:
+            instance.delete()
+        else:
+            instance.save()
+        return instance
+
+
+class followsView(ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAccountFollowers]
+    serializer_class = RelationshipSerializer
+    queryset = Relationships.objects.all()
+
     def list(self, request, *args, **kwargs):
-        user = get_object_or_404(User, pk=self.kwargs["pk"])
-        relationships = Relationships.objects.filter(
-            Q(receiver=user) | Q(sender=user), following=True
+        relationship = get_list_or_404(
+            Relationships, receiver=self.kwargs["pk"], following=True
         )
-        page = self.paginate_queryset(relationships)
+        page = self.paginate_queryset(relationship)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(relationships, many=True)
+        serializer = self.get_serializer(relationship, many=True)
         return Response(serializer.data)
-
-    def perform_destroy(self, instance):
-        receiver = get_object_or_404(User, pk=self.kwargs["pk"])
-        sender = self.request.user
-        relationship = get_object_or_404(
-            Relationships, receiver=receiver, sender=sender, following=True
-        )
-        relationship.following = False
-
-        if relationship.friend == RelationshipStatus.N:
-            print(relationship.friend)
-            relationship.delete()
-        else:
-            relationship.save()
-        return relationship
