@@ -1,22 +1,24 @@
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission
 from rest_framework.serializers import ValidationError
-from django.shortcuts import get_object_or_404
-from .models import Relationships
-from users.models import User
-class IsAccountOwner(permissions.BasePermission):
+from rest_framework.exceptions import PermissionDenied
+
+
+class IsAccountOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user.is_authenticated and obj == request.user
-    
-class IsAccountRetriever(permissions.BasePermission):
+
+
+class IsFriendshipReceiver(BasePermission):
     def has_object_permission(self, request, view, obj):
         if obj:
             return request.user.is_authenticated and obj.receiver == request.user
         else:
-            raise ValidationError("This friendship not already exists.")
+            raise PermissionDenied("This friend request does not exist.", code=404)
 
-class IsAccountFollowers(permissions.BasePermission):
+
+class IsAccountFollowers(BasePermission):
     def has_object_permission(self, request, view, obj):
         if obj:
             return request.user.is_authenticated and obj.sender == request.user
         else:
-            raise ValidationError("This friendship not already exists.")
+            raise ValidationError("You not follower this user.")
