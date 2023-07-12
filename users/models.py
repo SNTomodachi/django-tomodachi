@@ -8,7 +8,7 @@ from django.db.models.query import QuerySet
 class User(AbstractUser):
     username = CharField(max_length=150, unique=True)
     email = EmailField(unique=True)
-    password = CharField(max_length=150, null=True)
+    password = CharField(max_length=150)
     is_super = BooleanField(default=False)
     first_name = CharField(max_length=50)
     last_name = CharField(max_length=50)

@@ -1,3 +1,4 @@
+from django.core.validators import MinLengthValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from .models import User
@@ -17,7 +18,8 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "is_super"]
         extra_kwargs = {
-            "password": {"write_only": True},
+            "password": {"write_only": True,
+                         "validators":[MinLengthValidator(8)]},
             "username": {
                 "validators": [
                     UniqueValidator(
