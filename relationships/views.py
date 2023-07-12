@@ -100,7 +100,7 @@ class FollowingView(ListCreateAPIView, DestroyAPIView):
 
     def list(self, request, *args, **kwargs):
         relationship =  get_list_or_404(
-            Relationships,sender=self.request.user, following=True
+            Relationships,sender=self.kwargs["pk"], following=True
         )
         page = self.paginate_queryset(relationship)
         if page is not None:
@@ -109,7 +109,7 @@ class FollowingView(ListCreateAPIView, DestroyAPIView):
 
         serializer = self.get_serializer(relationship, many=True)
         return Response(serializer.data)
-    
+
     def perform_create(self, serializer):
         receiver = get_object_or_404(User, pk=self.kwargs["pk"])
         sender = self.request.user
@@ -138,3 +138,22 @@ class FollowingView(ListCreateAPIView, DestroyAPIView):
         else:
             instance.save()
         return instance
+
+class followsView(ListAPIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAccountFollowers]
+    serializer_class = RelationshipSerializer
+    queryset = Relationships.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        relationship =  get_list_or_404(
+            Relationships,receiver=self.kwargs["pk"], following=True
+        )
+        page = self.paginate_queryset(relationship)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(relationship, many=True)
+        return Response(serializer.data)
+    

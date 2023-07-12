@@ -1,14 +1,14 @@
-from rest_framework.permissions import BasePermission
+from rest_framework import permissions
 from rest_framework.serializers import ValidationError
 from rest_framework.exceptions import PermissionDenied
 
 
-class IsAccountOwner(BasePermission):
+class IsAccountOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user.is_authenticated and obj == request.user
 
 
-class IsFriendshipReceiver(BasePermission):
+class IsFriendshipReceiver(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if obj:
             return request.user.is_authenticated and obj.receiver == request.user
@@ -16,9 +16,12 @@ class IsFriendshipReceiver(BasePermission):
             raise PermissionDenied("This friend request does not exist.", code=404)
 
 
-class IsAccountFollowers(BasePermission):
+class IsAccountFollowers(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if obj:
-            return request.user.is_authenticated and obj.sender == request.user
+        if request.method in permissions.SAFE_METHODS:
+            return True
         else:
-            raise ValidationError("You not follower this user.")
+            if obj:
+                return request.user.is_authenticated and obj.sender == request.user
+            else:
+                raise ValidationError("You not follower this user.")

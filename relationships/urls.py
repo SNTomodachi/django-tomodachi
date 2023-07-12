@@ -5,6 +5,7 @@ from .views import (
     FriendshipRequestView,
     FriendshipRequestUpdateDestroyView,
     FollowingView,
+    followsView
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path("users/<int:pk>/friend_requests/", FriendshipRequestView.as_view()),
     path("friend_request/<int:pk>/", FriendshipRequestUpdateDestroyView.as_view()),
     path("following/<int:pk>/", FollowingView.as_view()),
+    path("followers/<int:pk>/", followsView.as_view()),
 ]
