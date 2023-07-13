@@ -176,8 +176,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Your Project API",
-    "DESCRIPTION": "Your project description",
+    "TITLE": "tomodachi",
+    "DESCRIPTION": "Este projeto tem como objetivo construir uma aplicação que simula uma rede social. O Produto Mínimo Viável (MVP) consiste nas seguintes funcionalidades:Os usuários autenticados podem seguir e serem seguidos por outros usuários.Os usuários autenticados podem solicitar e receber solicitações de amizade de outros usuários.Existe uma diferença entre seguir e ser amigo: um usuário pode seguir outro a qualquer momento sem autorização, mas a amizade só é estabelecida quando um usuário solicita e o outro aceita a solicitação.Os usuários autenticados podem criar postagens.As postagens podem ter permissões de acesso pública ou privada. As postagens públicas podem ser visualizadas por qualquer usuário, enquanto as privadas só podem ser vistas e interagidas por aqueles que seguem ou são amigos do usuário que as postou.Existe uma linha do tempo que exibe as postagens mais recentes de todos os usuários, desde que sejam seguidos ou amigos.Os usuários podem se cadastrar no sistema. Os usuários não cadastrados têm permissões limitadas, como visualizar perfis de outros usuários e ver postagens dependendo da permissão.Os usuários autenticados têm funcionalidades adicionais, como interagir com postagens (comentar e/ou curtir), seguir outros usuários e ver os amigos de outros usuários.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
